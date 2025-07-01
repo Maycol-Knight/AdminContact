@@ -9,134 +9,299 @@ import ConfirmacionModal from '../components/ConfirmacionModal.astro';
 ---
 <Layout>
     <ContenedorApp>
-        <!--
-          Contenedor de la "pantalla" del móvil. Es RELATIVO para que
-          los modales se posicionen correctamente dentro de él.
-        -->
-         
-        <div id="pantalla-movil" class="w-full h-[85vh] max-h-[850px] bg-black text-white rounded-[2rem] flex flex-col overflow-hidden relative">
+        <!-- Contenedor simulando pantalla completa con barras de navegación -->
+        <div class="w-full aspect-[9/19] max-h-[750px] bg-black rounded-[1.75rem] overflow-hidden relative">
             
-            <!-- El HEADER es permanente y nunca se oculta -->
-            <header class="flex-shrink-0 pt-12 pb-2">
-                <h1 id="titulo-principal" class="text-4xl font-bold px-4">Contactos</h1>
-                <p id="contador-contactos" class="text-gray-400 mt-1 px-4 text-sm">0 contactos</p>
-                <div id="contenedor-busqueda" class="mt-4 px-4">
+            <!-- PANTALLA MÓVIL -->
+            <div id="pantalla-movil" class="w-full h-[calc(100%-56px)] bg-gradient-to-b from-gray-900 via-black to-gray-900 text-white rounded-t-[1.75rem] flex flex-col overflow-hidden relative">
+                
+                <!-- CÁMARA FRONTAL Y SENSORES -->
+                <div class="absolute top-4 left-1/2 transform -translate-x-1/2 z-50 flex items-center space-x-3">
+                    <!-- Altavoz -->
+                    <div class="w-8 h-1 bg-gray-700 rounded-full"></div>
+                    
+                    <!-- Cámara frontal -->
+                    <div class="w-3 h-3 bg-gray-800 rounded-full border border-gray-600 flex items-center justify-center shadow-inner">
+                        <div class="w-2 h-2 bg-gray-900 rounded-full flex items-center justify-center">
+                            <div class="w-1 h-1 bg-blue-500/30 rounded-full"></div>
+                        </div>
+                    </div>
+                    
+                    <!-- Sensor de proximidad -->
+                    <div class="w-1 h-1 bg-red-900/50 rounded-full"></div>
+                </div>
+                
+                <!-- Efecto de reflejo superior -->
+                <div class="absolute top-0 left-0 right-0 h-24 bg-gradient-to-b from-white/5 to-transparent rounded-t-[1.75rem] pointer-events-none"></div>
+            
+            <!-- HEADER -->
+            <header class="flex-shrink-0 pt-12 pb-2 bg-gradient-to-b from-gray-900 to-transparent">
+                <div class="px-4">
+                    <h1 class="text-3xl font-bold bg-gradient-to-r from-white to-gray-300 bg-clip-text text-transparent">Contactos</h1>
+                    <div class="flex items-center mt-1">
+                        <div class="w-1.5 h-1.5 bg-green-400 rounded-full mr-2 animate-pulse"></div>
+                        <p id="contador-contactos" class="text-gray-400 text-xs font-medium">3 contactos</p>
+                    </div>
+                </div>
+                
+                <!-- BARRA DE BÚSQUEDA -->
+                <div class="mt-3 px-4">
                     <BarraBusqueda />
                 </div>
             </header>
 
-            <!--
-              Estas son las "vistas" que se intercambian.
-              'vista-lista' contiene el main con la lista.
-              'vista-formulario' contiene el formulario.
-            -->
-            <main id="vista-lista" class="flex-grow overflow-y-auto mt-4">
+            <!-- VISTA LISTA -->
+            <main id="vista-lista" class="flex-grow overflow-y-auto mt-2 pb-14">
                 <ListaContactos />
             </main>
 
+            <!-- VISTA FORMULARIO -->
             <div id="vista-formulario" class="hidden h-full">
                 <FormularioContacto />
             </div>
 
-            <!-- Botón flotante para agregar, siempre visible en la vista de lista -->
-            <button id="boton-agregar" class="absolute bottom-6 right-6 bg-blue-600 hover:bg-blue-700 text-white rounded-full w-14 h-14 flex items-center justify-center shadow-lg z-10">
-                <i class="fa-solid fa-plus text-2xl"></i>
+            <!-- BOTÓN FLOTANTE -->
+            <button id="boton-agregar" class="absolute bottom-16 right-4 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white rounded-full w-14 h-14 flex items-center justify-center shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-110 z-10">
+                <i class="fa-solid fa-plus text-xl"></i>
+                <div class="absolute inset-0 bg-gradient-to-r from-blue-400 to-blue-500 rounded-full opacity-0 hover:opacity-20 transition-opacity duration-300"></div>
             </button>
 
-            <!-- Modales y notificaciones flotan sobre todo lo demás -->
+            <!-- BARRA DE NAVEGACIÓN INFERIOR -->
+            <div class="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-gray-900 via-gray-800 to-gray-900 border-t border-gray-600 backdrop-blur-sm z-20">
+                <div class="flex justify-around items-center px-1 py-1">
+                    <!-- Favoritos -->
+                    <button class="nav-item flex flex-col items-center py-2 px-3 text-gray-400 hover:text-yellow-400 transition-all duration-300 hover:scale-105 rounded-lg hover:bg-gray-700/50">
+                        <div class="relative">
+                            <i class="fas fa-star text-sm mb-1"></i>
+                        </div>
+                        <span class="text-xs font-medium">Favoritos</span>
+                    </button>
+                    
+                    <!-- Contactos (Activo) -->
+                    <button class="nav-item flex flex-col items-center py-2 px-3 text-blue-400 transition-all duration-300 scale-105 rounded-lg bg-blue-500/20 border border-blue-500/30">
+                        <div class="relative">
+                            <i class="fas fa-address-book text-sm mb-1"></i>
+                            <div class="absolute -top-1 -right-1 w-1.5 h-1.5 bg-blue-400 rounded-full animate-pulse"></div>
+                        </div>
+                        <span class="text-xs font-semibold">Contactos</span>
+                    </button>
+                    
+                    <!-- Teléfono -->
+                    <button class="nav-item flex flex-col items-center py-2 px-3 text-gray-400 hover:text-green-400 transition-all duration-300 hover:scale-105 rounded-lg hover:bg-gray-700/50">
+                        <div class="relative">
+                            <i class="fas fa-phone text-sm mb-1"></i>
+                        </div>
+                        <span class="text-xs font-medium">Teléfono</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- COMPONENTES DE UI -->
             <NotificacionToast />
             <ConfirmacionModal />
         </div>
+
+        <!-- BARRA DE NAVEGACIÓN SISTEMA ANDROID -->
+        <div class="absolute bottom-0 left-0 right-0 bg-black/90 backdrop-blur-md rounded-b-[1.75rem]">
+            <div class="flex justify-center items-center py-3 px-6">
+                <!-- Botón Atrás -->
+                <button class="android-nav-btn p-2 mx-6 text-white/70 hover:text-white transition-all duration-200 hover:bg-white/10 rounded-full">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M19 12H5M12 19l-7-7 7-7"/>
+                    </svg>
+                </button>
+                
+                <!-- Botón Inicio (Círculo) -->
+                <button class="android-nav-btn p-2 mx-6 text-white/70 hover:text-white transition-all duration-200 hover:bg-white/10 rounded-full">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="10"/>
+                    </svg>
+                </button>
+                
+                <!-- Botón Recientes (Cuadrado) -->
+                <button class="android-nav-btn p-2 mx-6 text-white/70 hover:text-white transition-all duration-200 hover:bg-white/10 rounded-full">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+                    </svg>
+                </button>
+            </div>
+        </div>
+    </div>
     </ContenedorApp>
 </Layout>
 
 <script is:inline>
-    // --- ESTADO Y LÓGICA DEL ORQUESTADOR ---
-    let contactos = [
+    // =====================================================
+    // COORDINACIÓN GLOBAL DE LA APLICACIÓN MODULARIZADA
+    // =====================================================
+
+    // =====================================================
+    // PERSISTENCIA DE DATOS CON LOCALSTORAGE
+    // =====================================================
+    
+    // Función para guardar contactos en localStorage
+    window.guardarContactosEnStorage = function() {
+        try {
+            localStorage.setItem('adminContactos', JSON.stringify(window.contactos));
+        } catch (error) {
+            console.error('Error al guardar contactos en localStorage:', error);
+        }
+    };
+
+    // Función para cargar contactos desde localStorage
+    window.cargarContactosDesdeStorage = function() {
+        try {
+            const contactosGuardados = localStorage.getItem('adminContactos');
+            if (contactosGuardados) {
+                return JSON.parse(contactosGuardados);
+            }
+        } catch (error) {
+            console.error('Error al cargar contactos desde localStorage:', error);
+        }
+        return null;
+    };
+
+    // Contactos por defecto (solo para la primera vez)
+    const contactosPorDefecto = [
         { id: '1', nombre: 'Ana Torres', telefono: '987654321', email: 'ana.t@example.com' },
         { id: '2', nombre: 'Luis Morales', telefono: '912345678', email: 'luis.m@example.com' },
         { id: '3', nombre: 'Carla Diaz', telefono: '998877665', email: 'carla.d@example.com' }
     ];
-    let idParaEliminar = null;
 
-    // Seleccionamos los elementos que se van a ocultar/mostrar
-    const vistaLista = document.getElementById('vista-lista');
-    const vistaFormulario = document.getElementById('vista-formulario');
-    const botonAgregar = document.getElementById('boton-agregar');
-    const headerPrincipal = document.querySelector('header');
-
-    function cambiarVista(vistaAMostrar) {
-        if (vistaAMostrar === 'formulario') {
-            vistaLista.classList.add('hidden');
-            botonAgregar.classList.add('hidden');
-            // Ocultamos el header para dar más espacio al formulario
-            headerPrincipal.classList.add('hidden'); 
-            
-            vistaFormulario.classList.remove('hidden');
-        } else { // Volviendo a la lista
-            vistaFormulario.classList.add('hidden');
-            
-            vistaLista.classList.remove('hidden');
-            botonAgregar.classList.remove('hidden');
-            headerPrincipal.classList.remove('hidden');
-        }
+    // Inicializar contactos (cargar desde storage o usar por defecto)
+    const contactosCargados = window.cargarContactosDesdeStorage();
+    window.contactos = contactosCargados || contactosPorDefecto;
+    
+    // Si es la primera vez, guardar los contactos por defecto
+    if (!contactosCargados) {
+        window.guardarContactosEnStorage();
     }
     
-    // El resto del script es idéntico y correcto
-    function actualizarYRenderizar(listaAFiltrar = contactos) {
-        document.dispatchEvent(new CustomEvent('actualizar-lista', { detail: { contactos: listaAFiltrar } }));
-    }
-    document.addEventListener('DOMContentLoaded', () => {
-        actualizarYRenderizar();
-    });
-    document.addEventListener('guardar-contacto', (evento) => {
-        const contactoRecibido = evento.detail;
-        const indice = contactos.findIndex(c => c.id === contactoRecibido.id);
-        if (indice !== -1) {
-            contactos[indice] = contactoRecibido;
-            document.dispatchEvent(new CustomEvent('mostrar-notificacion', { detail: { mensaje: 'Contacto actualizado.', tipo: 'exito' } }));
-        } else {
-            contactos.unshift(contactoRecibido);
-            document.dispatchEvent(new CustomEvent('mostrar-notificacion', { detail: { mensaje: 'Contacto guardado.', tipo: 'exito' } }));
+    window.contactosFiltrados = [...window.contactos];
+    
+    window.appState = {
+        vistaActual: 'lista',
+        modoEdicion: false,
+        contactoEditando: null,
+        contactoAEliminar: null,
+        terminoBusqueda: ''
+    };
+
+    // =====================================================
+    // FUNCIONES GLOBALES DE COORDINACIÓN
+    // =====================================================
+
+    // Función para cambiar entre vistas
+    window.cambiarVista = function(vista) {
+        const vistaLista = document.getElementById('vista-lista');
+        const vistaFormulario = document.getElementById('vista-formulario');
+        const botonAgregar = document.getElementById('boton-agregar');
+        const headerPrincipal = document.querySelector('header');
+        
+        if (vista === 'lista') {
+            vistaLista.classList.remove('hidden');
+            vistaFormulario.classList.add('hidden');
+            botonAgregar.classList.remove('hidden');
+            headerPrincipal.classList.remove('hidden');
+            window.appState.vistaActual = 'lista';
+        } else if (vista === 'formulario') {
+            vistaLista.classList.add('hidden');
+            vistaFormulario.classList.remove('hidden');
+            botonAgregar.classList.add('hidden');
+            headerPrincipal.classList.add('hidden');
+            window.appState.vistaActual = 'formulario';
         }
-        actualizarYRenderizar();
-        cambiarVista('lista');
-    });
-    document.addEventListener('solicitar-edicion', (evento) => {
-        const contacto = contactos.find(c => c.id === evento.detail.id);
-        if (contacto) {
-            document.dispatchEvent(new CustomEvent('cargar-datos-formulario', { detail: contacto }));
-            cambiarVista('formulario');
-        }
-    });
-    document.addEventListener('solicitar-eliminacion', (evento) => {
-        // Correcto: NO se llama a cambiarVista()
-        idParaEliminar = evento.detail.id;
-        document.dispatchEvent(new CustomEvent('mostrar-confirmacion-eliminar'));
-    });
-    document.addEventListener('confirmar-eliminacion-final', () => {
-        // Correcto: NO se llama a cambiarVista()
-        if (idParaEliminar) {
-            contactos = contactos.filter(c => c.id !== idParaEliminar);
-            actualizarYRenderizar();
-            document.dispatchEvent(new CustomEvent('mostrar-notificacion', { detail: { mensaje: 'Contacto eliminado.', tipo: 'info' } }));
-            idParaEliminar = null; 
-        }
-    });
-    document.addEventListener('filtrar-contactos', (evento) => {
-        const termino = evento.detail.termino.toLowerCase();
-        const contactosFiltrados = contactos.filter(c => 
-            c.nombre.toLowerCase().includes(termino) ||
-            c.telefono.toLowerCase().includes(termino) ||
-            c.email.toLowerCase().includes(termino)
+    };
+
+    // Función para filtrar contactos
+    window.filtrarContactos = function(termino) {
+        const terminoLower = termino.toLowerCase();
+        window.appState.terminoBusqueda = terminoLower;
+        
+        window.contactosFiltrados = window.contactos.filter(contacto => 
+            contacto.nombre.toLowerCase().includes(terminoLower) ||
+            contacto.telefono.toLowerCase().includes(terminoLower) ||
+            contacto.email.toLowerCase().includes(terminoLower)
         );
-        actualizarYRenderizar(contactosFiltrados);
-    });
-    botonAgregar.addEventListener('click', () => {
-        document.dispatchEvent(new CustomEvent('limpiar-formulario'));
-        cambiarVista('formulario');
-    });
-    document.addEventListener('operacion-cancelada', () => {
-        cambiarVista('lista');
+        
+        // Renderizar la lista actualizada
+        if (window.renderizarContactos) {
+            window.renderizarContactos();
+        }
+    };
+
+    // =====================================================
+    // INICIALIZACIÓN DE LA APLICACIÓN
+    // =====================================================
+
+    document.addEventListener('DOMContentLoaded', function() {
+        // Inicializar todos los componentes
+        setTimeout(() => {
+            if (window.inicializarBarraBusqueda) window.inicializarBarraBusqueda();
+            if (window.inicializarListaContactos) window.inicializarListaContactos();
+            if (window.inicializarFormularioContacto) window.inicializarFormularioContacto();
+            if (window.inicializarConfirmacionModal) window.inicializarConfirmacionModal();
+            if (window.inicializarNotificacionToast) window.inicializarNotificacionToast();
+            
+            // Configurar botón agregar
+            const botonAgregar = document.getElementById('boton-agregar');
+            if (botonAgregar) {
+                botonAgregar.addEventListener('click', function() {
+                    if (window.agregarNuevoContacto) {
+                        window.agregarNuevoContacto();
+                    }
+                });
+            }
+            
+            // Configurar botones de la barra inferior
+            const botonesNav = document.querySelectorAll('.nav-item');
+            botonesNav.forEach((boton, index) => {
+                boton.addEventListener('click', function() {
+                    if (index === 0) { // Favoritos
+                        if (window.mostrarNotificacion) {
+                            window.mostrarNotificacion('⭐ Función de favoritos próximamente', 'info');
+                        }
+                    } else if (index === 1) { // Contactos (ya activo)
+                        // Ya estamos en contactos, no hacer nada
+                    } else if (index === 2) { // Teléfono
+                        if (window.mostrarNotificacion) {
+                            window.mostrarNotificacion('📞 Función de teléfono próximamente', 'info');
+                        }
+                    }
+                });
+            });
+
+            // Configurar botones de navegación Android
+            const botonesAndroid = document.querySelectorAll('.android-nav-btn');
+            botonesAndroid.forEach((boton, index) => {
+                boton.addEventListener('click', function() {
+                    if (index === 0) { // Atrás
+                        if (window.appState.vistaActual === 'formulario') {
+                            window.cambiarVista('lista');
+                            if (window.mostrarNotificacion) {
+                                window.mostrarNotificacion('◀️ Volviendo a la lista', 'info');
+                            }
+                        } else {
+                            if (window.mostrarNotificacion) {
+                                window.mostrarNotificacion('◀️ Botón atrás', 'info');
+                            }
+                        }
+                    } else if (index === 1) { // Inicio
+                        if (window.mostrarNotificacion) {
+                            window.mostrarNotificacion('🏠 Botón inicio', 'info');
+                        }
+                    } else if (index === 2) { // Recientes
+                        if (window.mostrarNotificacion) {
+                            window.mostrarNotificacion('📱 Apps recientes', 'info');
+                        }
+                    }
+                });
+            });
+            
+            // Renderizar contactos inicial
+            if (window.renderizarContactos) {
+                window.renderizarContactos();
+            }
+        }, 100);
     });
 </script>
