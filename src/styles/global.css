@@ -1,0 +1,11 @@
+@import "tailwindcss";
+
+/* Podemos añadir estilos globales personalizados aquí si es necesario */
+body {
+  background-color: #1f2937; /* gray-800 */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}

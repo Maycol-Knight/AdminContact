@@ -1,0 +1,20 @@
+---
+import './src/styles/global.css'
+---
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="generator" content={Astro.generator} />
+    <title>Agenda de Contactos</title>
+    <!-- Font Awesome para los íconos -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    <!-- El CSS global con Tailwind -->
+    <link rel="stylesheet" href="/styles/global.css">
+</head>
+<body>
+    <slot /> <!-- Aquí se insertará nuestra página principal -->
+</body>
+</html>

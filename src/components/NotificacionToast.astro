@@ -1,0 +1,28 @@
+---
+// Componente para mensajes emergentes.
+---
+<div id="notificacion-toast" class="hidden absolute bottom-20 left-1/2 -translate-x-1/2 bg-gray-700 text-white px-6 py-3 rounded-full shadow-lg opacity-0 transition-opacity duration-500 z-50">
+    <!-- El mensaje se insertará aquí -->
+</div>
+
+<script is:inline>
+    const notificacionToast = document.getElementById('notificacion-toast');
+    let temporizador;
+
+    function mostrarNotificacion(evento) {
+        const { mensaje, tipo } = evento.detail;
+        clearTimeout(temporizador);
+        notificacionToast.textContent = mensaje;
+        notificacionToast.classList.remove('bg-green-600', 'bg-red-600', 'bg-gray-700');
+        if (tipo === 'exito') notificacionToast.classList.add('bg-green-600');
+        else if (tipo === 'error') notificacionToast.classList.add('bg-red-600');
+        else notificacionToast.classList.add('bg-gray-700');
+        notificacionToast.classList.remove('hidden', 'opacity-0');
+        temporizador = setTimeout(() => {
+            notificacionToast.classList.add('opacity-0');
+            setTimeout(() => notificacionToast.classList.add('hidden'), 500);
+        }, 3000);
+    }
+
+    document.addEventListener('mostrar-notificacion', mostrarNotificacion);
+</script>

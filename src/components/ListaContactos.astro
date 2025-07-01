@@ -1,0 +1,78 @@
+---
+// Este componente ahora solo renderiza la lista UL y su lógica.
+---
+<ul id="lista-contactos" class="space-y-2 px-4">
+    <!-- El contenido se generará dinámicamente con JavaScript -->
+</ul>
+
+<script is:inline>
+    const contenedorLista = document.getElementById('lista-contactos');
+    const contadorContactos = document.getElementById('contador-contactos');
+    
+    // --- IMPLEMENTACIÓN DE DELEGACIÓN DE EVENTOS ---
+    contenedorLista.addEventListener('click', function(evento) {
+        const target = evento.target;
+        
+        const botonEditar = target.closest('.boton-editar');
+        if (botonEditar) {
+            const id = botonEditar.dataset.id;
+            const eventoEditar = new CustomEvent('solicitar-edicion', {
+                detail: { id: id }
+            });
+            document.dispatchEvent(eventoEditar);
+            return;
+        }
+
+        const botonEliminar = target.closest('.boton-eliminar');
+        if (botonEliminar) {
+            const id = botonEliminar.dataset.id;
+            const eventoEliminar = new CustomEvent('solicitar-eliminacion', {
+                detail: { id: id }
+            });
+            document.dispatchEvent(eventoEliminar);
+        }
+    });
+
+    function renderizarLista(contactos) {
+        contenedorLista.innerHTML = '';
+        if (contadorContactos) {
+            contadorContactos.textContent = `${contactos.length} contactos`;
+        }
+        
+        if (contactos.length === 0) {
+            contenedorLista.innerHTML = `<li class="text-center text-gray-500 py-10">No se encontraron contactos.</li>`;
+            return;
+        }
+
+        contactos.forEach(contacto => {
+            const inicial = contacto.nombre.charAt(0).toUpperCase();
+            const itemHTML = `
+                <li class="flex items-center justify-between bg-gray-900 p-3 rounded-lg hover:bg-gray-800 transition-colors duration-200">
+                    <div class="flex items-center space-x-4 pointer-events-none">
+                        <div class="w-10 h-10 rounded-full bg-purple-600 flex items-center justify-center font-bold text-xl">
+                            ${inicial}
+                        </div>
+                        <div>
+                            <p class="font-semibold">${contacto.nombre}</p>
+                            <p class="text-sm text-gray-400">${contacto.email}</p>
+                        </div>
+                    </div>
+                    <div class="flex space-x-2 items-center">
+                        <button class="boton-editar p-2 text-gray-400 hover:text-blue-400" data-id="${contacto.id}" title="Editar Contacto">
+                            <i class="fas fa-pencil-alt pointer-events-none"></i>
+                        </button>
+                        <button class="boton-eliminar p-2 text-gray-400 hover:text-red-500" data-id="${contacto.id}" title="Eliminar Contacto">
+                            <i class="fas fa-trash-alt pointer-events-none"></i>
+                        </button>
+                    </div>
+                </li>
+            `;
+            contenedorLista.innerHTML += itemHTML;
+        });
+    }
+
+    document.addEventListener('actualizar-lista', (evento) => {
+        const { contactos } = evento.detail;
+        renderizarLista(contactos);
+    });
+</script>

@@ -1,0 +1,142 @@
+---
+import Layout from '../layouts/Layout.astro';
+import ContenedorApp from '../components/ContenedorApp.astro';
+import BarraBusqueda from '../components/BarraBusqueda.astro';
+import ListaContactos from '../components/ListaContactos.astro';
+import FormularioContacto from '../components/FormularioContacto.astro';
+import NotificacionToast from '../components/NotificacionToast.astro';
+import ConfirmacionModal from '../components/ConfirmacionModal.astro';
+---
+<Layout>
+    <ContenedorApp>
+        <!--
+          Contenedor de la "pantalla" del móvil. Es RELATIVO para que
+          los modales se posicionen correctamente dentro de él.
+        -->
+         
+        <div id="pantalla-movil" class="w-full h-[85vh] max-h-[850px] bg-black text-white rounded-[2rem] flex flex-col overflow-hidden relative">
+            
+            <!-- El HEADER es permanente y nunca se oculta -->
+            <header class="flex-shrink-0 pt-12 pb-2">
+                <h1 id="titulo-principal" class="text-4xl font-bold px-4">Contactos</h1>
+                <p id="contador-contactos" class="text-gray-400 mt-1 px-4 text-sm">0 contactos</p>
+                <div id="contenedor-busqueda" class="mt-4 px-4">
+                    <BarraBusqueda />
+                </div>
+            </header>
+
+            <!--
+              Estas son las "vistas" que se intercambian.
+              'vista-lista' contiene el main con la lista.
+              'vista-formulario' contiene el formulario.
+            -->
+            <main id="vista-lista" class="flex-grow overflow-y-auto mt-4">
+                <ListaContactos />
+            </main>
+
+            <div id="vista-formulario" class="hidden h-full">
+                <FormularioContacto />
+            </div>
+
+            <!-- Botón flotante para agregar, siempre visible en la vista de lista -->
+            <button id="boton-agregar" class="absolute bottom-6 right-6 bg-blue-600 hover:bg-blue-700 text-white rounded-full w-14 h-14 flex items-center justify-center shadow-lg z-10">
+                <i class="fa-solid fa-plus text-2xl"></i>
+            </button>
+
+            <!-- Modales y notificaciones flotan sobre todo lo demás -->
+            <NotificacionToast />
+            <ConfirmacionModal />
+        </div>
+    </ContenedorApp>
+</Layout>
+
+<script is:inline>
+    // --- ESTADO Y LÓGICA DEL ORQUESTADOR ---
+    let contactos = [
+        { id: '1', nombre: 'Ana Torres', telefono: '987654321', email: 'ana.t@example.com' },
+        { id: '2', nombre: 'Luis Morales', telefono: '912345678', email: 'luis.m@example.com' },
+        { id: '3', nombre: 'Carla Diaz', telefono: '998877665', email: 'carla.d@example.com' }
+    ];
+    let idParaEliminar = null;
+
+    // Seleccionamos los elementos que se van a ocultar/mostrar
+    const vistaLista = document.getElementById('vista-lista');
+    const vistaFormulario = document.getElementById('vista-formulario');
+    const botonAgregar = document.getElementById('boton-agregar');
+    const headerPrincipal = document.querySelector('header');
+
+    function cambiarVista(vistaAMostrar) {
+        if (vistaAMostrar === 'formulario') {
+            vistaLista.classList.add('hidden');
+            botonAgregar.classList.add('hidden');
+            // Ocultamos el header para dar más espacio al formulario
+            headerPrincipal.classList.add('hidden'); 
+            
+            vistaFormulario.classList.remove('hidden');
+        } else { // Volviendo a la lista
+            vistaFormulario.classList.add('hidden');
+            
+            vistaLista.classList.remove('hidden');
+            botonAgregar.classList.remove('hidden');
+            headerPrincipal.classList.remove('hidden');
+        }
+    }
+    
+    // El resto del script es idéntico y correcto
+    function actualizarYRenderizar(listaAFiltrar = contactos) {
+        document.dispatchEvent(new CustomEvent('actualizar-lista', { detail: { contactos: listaAFiltrar } }));
+    }
+    document.addEventListener('DOMContentLoaded', () => {
+        actualizarYRenderizar();
+    });
+    document.addEventListener('guardar-contacto', (evento) => {
+        const contactoRecibido = evento.detail;
+        const indice = contactos.findIndex(c => c.id === contactoRecibido.id);
+        if (indice !== -1) {
+            contactos[indice] = contactoRecibido;
+            document.dispatchEvent(new CustomEvent('mostrar-notificacion', { detail: { mensaje: 'Contacto actualizado.', tipo: 'exito' } }));
+        } else {
+            contactos.unshift(contactoRecibido);
+            document.dispatchEvent(new CustomEvent('mostrar-notificacion', { detail: { mensaje: 'Contacto guardado.', tipo: 'exito' } }));
+        }
+        actualizarYRenderizar();
+        cambiarVista('lista');
+    });
+    document.addEventListener('solicitar-edicion', (evento) => {
+        const contacto = contactos.find(c => c.id === evento.detail.id);
+        if (contacto) {
+            document.dispatchEvent(new CustomEvent('cargar-datos-formulario', { detail: contacto }));
+            cambiarVista('formulario');
+        }
+    });
+    document.addEventListener('solicitar-eliminacion', (evento) => {
+        // Correcto: NO se llama a cambiarVista()
+        idParaEliminar = evento.detail.id;
+        document.dispatchEvent(new CustomEvent('mostrar-confirmacion-eliminar'));
+    });
+    document.addEventListener('confirmar-eliminacion-final', () => {
+        // Correcto: NO se llama a cambiarVista()
+        if (idParaEliminar) {
+            contactos = contactos.filter(c => c.id !== idParaEliminar);
+            actualizarYRenderizar();
+            document.dispatchEvent(new CustomEvent('mostrar-notificacion', { detail: { mensaje: 'Contacto eliminado.', tipo: 'info' } }));
+            idParaEliminar = null; 
+        }
+    });
+    document.addEventListener('filtrar-contactos', (evento) => {
+        const termino = evento.detail.termino.toLowerCase();
+        const contactosFiltrados = contactos.filter(c => 
+            c.nombre.toLowerCase().includes(termino) ||
+            c.telefono.toLowerCase().includes(termino) ||
+            c.email.toLowerCase().includes(termino)
+        );
+        actualizarYRenderizar(contactosFiltrados);
+    });
+    botonAgregar.addEventListener('click', () => {
+        document.dispatchEvent(new CustomEvent('limpiar-formulario'));
+        cambiarVista('formulario');
+    });
+    document.addEventListener('operacion-cancelada', () => {
+        cambiarVista('lista');
+    });
+</script>
