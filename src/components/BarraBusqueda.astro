@@ -1,5 +1,5 @@
 ---
-// Componente para la barra de búsqueda.
+// Componente de búsqueda modularizado
 ---
 <div class="relative">
     <input 
@@ -12,13 +12,39 @@
 </div>
 
 <script is:inline>
-    const barraBusqueda = document.getElementById('barra-busqueda');
-
-    barraBusqueda.addEventListener('input', (evento) => {
-        const terminoBusqueda = evento.target.value;
-        const eventoFiltrar = new CustomEvent('filtrar-contactos', {
-            detail: { termino: terminoBusqueda }
-        });
-        document.dispatchEvent(eventoFiltrar);
-    });
+    // =====================================================
+    // LÓGICA DEL COMPONENTE BARRA DE BÚSQUEDA
+    // =====================================================
+    
+    window.inicializarBarraBusqueda = function() {
+        const barraBusqueda = document.getElementById('barra-busqueda');
+        
+        if (barraBusqueda) {
+            // Búsqueda en tiempo real
+            barraBusqueda.addEventListener('input', function(e) {
+                const termino = e.target.value;
+                if (window.filtrarContactos) {
+                    window.filtrarContactos(termino);
+                }
+            });
+            
+            // Limpiar con Escape
+            barraBusqueda.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape') {
+                    e.target.value = '';
+                    if (window.filtrarContactos) {
+                        window.filtrarContactos('');
+                    }
+                }
+            });
+            
+            // Función específica del componente para limpiar
+            window.limpiarBusqueda = function() {
+                barraBusqueda.value = '';
+                if (window.filtrarContactos) {
+                    window.filtrarContactos('');
+                }
+            };
+        }
+    };
 </script>

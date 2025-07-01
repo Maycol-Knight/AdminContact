@@ -1,28 +1,62 @@
 ---
-// Componente para mensajes emergentes.
+// Componente modularizado de notificaciones toast
 ---
-<div id="notificacion-toast" class="hidden absolute bottom-20 left-1/2 -translate-x-1/2 bg-gray-700 text-white px-6 py-3 rounded-full shadow-lg opacity-0 transition-opacity duration-500 z-50">
-    <!-- El mensaje se insertará aquí -->
+<div id="notificacion-toast" class="absolute bottom-20 left-1/2 transform -translate-x-1/2 bg-green-600 text-white px-6 py-3 rounded-lg shadow-lg opacity-0 translate-y-full transition-all duration-300 z-30 hidden min-w-max max-w-xs">
+    <div class="flex items-center justify-center whitespace-nowrap">
+        <i id="icono-notificacion" class="fas fa-check mr-2 flex-shrink-0"></i>
+        <span id="mensaje-notificacion" class="text-sm">Mensaje</span>
+    </div>
 </div>
 
 <script is:inline>
-    const notificacionToast = document.getElementById('notificacion-toast');
-    let temporizador;
-
-    function mostrarNotificacion(evento) {
-        const { mensaje, tipo } = evento.detail;
-        clearTimeout(temporizador);
-        notificacionToast.textContent = mensaje;
-        notificacionToast.classList.remove('bg-green-600', 'bg-red-600', 'bg-gray-700');
-        if (tipo === 'exito') notificacionToast.classList.add('bg-green-600');
-        else if (tipo === 'error') notificacionToast.classList.add('bg-red-600');
-        else notificacionToast.classList.add('bg-gray-700');
-        notificacionToast.classList.remove('hidden', 'opacity-0');
-        temporizador = setTimeout(() => {
-            notificacionToast.classList.add('opacity-0');
-            setTimeout(() => notificacionToast.classList.add('hidden'), 500);
-        }, 3000);
-    }
-
-    document.addEventListener('mostrar-notificacion', mostrarNotificacion);
+    // =====================================================
+    // LÓGICA DEL COMPONENTE NOTIFICACIÓN TOAST
+    // =====================================================
+    
+    window.inicializarNotificacionToast = function() {
+        const toast = document.getElementById('notificacion-toast');
+        const textoToast = document.getElementById('mensaje-notificacion');
+        const iconoToast = document.getElementById('icono-notificacion');
+        
+        // Variable para controlar el timer
+        let notificacionTimer;
+        
+        // Función global para mostrar notificaciones
+        window.mostrarNotificacion = function(mensaje, tipo = 'success') {
+            if (!toast || !textoToast || !iconoToast) return;
+            
+            // Limpiar timer anterior
+            if (notificacionTimer) {
+                clearTimeout(notificacionTimer);
+            }
+            
+            textoToast.textContent = mensaje;
+            
+            // Configurar colores según el tipo
+            toast.classList.remove('bg-green-600', 'bg-red-600', 'bg-gray-700');
+            iconoToast.classList.remove('fa-check', 'fa-exclamation-triangle', 'fa-info-circle');
+            
+            if (tipo === 'success' || tipo === 'exito') {
+                toast.classList.add('bg-green-600');
+                iconoToast.classList.add('fa-check');
+            } else if (tipo === 'error') {
+                toast.classList.add('bg-red-600');
+                iconoToast.classList.add('fa-exclamation-triangle');
+            } else {
+                toast.classList.add('bg-gray-700');
+                iconoToast.classList.add('fa-info-circle');
+            }
+            
+            // Mostrar la notificación
+            toast.classList.remove('hidden', 'opacity-0', 'translate-y-full');
+            
+            // Auto-ocultar después de 3 segundos
+            notificacionTimer = setTimeout(() => {
+                toast.classList.add('opacity-0', 'translate-y-full');
+                setTimeout(() => {
+                    toast.classList.add('hidden');
+                }, 300);
+            }, 3000);
+        };
+    };
 </script>

@@ -1,78 +1,84 @@
 ---
-// Este componente ahora solo renderiza la lista UL y su lógica.
+// Componente modularizado de lista de contactos
 ---
 <ul id="lista-contactos" class="space-y-2 px-4">
-    <!-- El contenido se generará dinámicamente con JavaScript -->
+    <!-- El contenido se generará dinámicamente -->
 </ul>
 
 <script is:inline>
-    const contenedorLista = document.getElementById('lista-contactos');
-    const contadorContactos = document.getElementById('contador-contactos');
+    // =====================================================
+    // LÓGICA DEL COMPONENTE LISTA DE CONTACTOS
+    // =====================================================
     
-    // --- IMPLEMENTACIÓN DE DELEGACIÓN DE EVENTOS ---
-    contenedorLista.addEventListener('click', function(evento) {
-        const target = evento.target;
+    window.inicializarListaContactos = function() {
+        const listaContactos = document.getElementById('lista-contactos');
         
-        const botonEditar = target.closest('.boton-editar');
-        if (botonEditar) {
-            const id = botonEditar.dataset.id;
-            const eventoEditar = new CustomEvent('solicitar-edicion', {
-                detail: { id: id }
-            });
-            document.dispatchEvent(eventoEditar);
-            return;
-        }
+        // Función para renderizar la lista (accesible globalmente)
+        window.renderizarContactos = function() {
+            if (!listaContactos || !window.contactosFiltrados) return;
+            
+            listaContactos.innerHTML = '';
+            
+            // Actualizar contador
+            const contador = document.getElementById('contador-contactos');
+            if (contador) {
+                const cantidad = window.contactosFiltrados.length;
+                contador.textContent = `${cantidad} contacto${cantidad !== 1 ? 's' : ''}`;
+            }
+            
+            // Mostrar mensaje si no hay contactos
+            if (window.contactosFiltrados.length === 0) {
+                listaContactos.innerHTML = '<li class="text-center text-gray-500 py-10">No se encontraron contactos.</li>';
+                return;
+            }
 
-        const botonEliminar = target.closest('.boton-eliminar');
-        if (botonEliminar) {
-            const id = botonEliminar.dataset.id;
-            const eventoEliminar = new CustomEvent('solicitar-eliminacion', {
-                detail: { id: id }
-            });
-            document.dispatchEvent(eventoEliminar);
-        }
-    });
-
-    function renderizarLista(contactos) {
-        contenedorLista.innerHTML = '';
-        if (contadorContactos) {
-            contadorContactos.textContent = `${contactos.length} contactos`;
-        }
-        
-        if (contactos.length === 0) {
-            contenedorLista.innerHTML = `<li class="text-center text-gray-500 py-10">No se encontraron contactos.</li>`;
-            return;
-        }
-
-        contactos.forEach(contacto => {
-            const inicial = contacto.nombre.charAt(0).toUpperCase();
-            const itemHTML = `
-                <li class="flex items-center justify-between bg-gray-900 p-3 rounded-lg hover:bg-gray-800 transition-colors duration-200">
-                    <div class="flex items-center space-x-4 pointer-events-none">
-                        <div class="w-10 h-10 rounded-full bg-purple-600 flex items-center justify-center font-bold text-xl">
+            // Renderizar cada contacto
+            window.contactosFiltrados.forEach(contacto => {
+                const inicial = contacto.nombre.charAt(0).toUpperCase();
+                const li = document.createElement('li');
+                li.className = 'flex items-center justify-between bg-gray-900 p-3 rounded-lg hover:bg-gray-800 transition-colors duration-200';
+                li.innerHTML = `
+                    <div class="flex items-center space-x-4 flex-1 min-w-0">
+                        <div class="w-10 h-10 rounded-full bg-purple-600 flex items-center justify-center font-bold text-xl flex-shrink-0">
                             ${inicial}
                         </div>
-                        <div>
-                            <p class="font-semibold">${contacto.nombre}</p>
-                            <p class="text-sm text-gray-400">${contacto.email}</p>
+                        <div class="min-w-0 flex-1">
+                            <p class="font-semibold truncate">${contacto.nombre}</p>
+                            <p class="text-sm text-gray-400 truncate">${contacto.telefono}</p>
+                            <p class="text-sm text-gray-400 truncate">${contacto.email}</p>
                         </div>
                     </div>
                     <div class="flex space-x-2 items-center">
                         <button class="boton-editar p-2 text-gray-400 hover:text-blue-400" data-id="${contacto.id}" title="Editar Contacto">
-                            <i class="fas fa-pencil-alt pointer-events-none"></i>
+                            <i class="fas fa-pencil-alt"></i>
                         </button>
                         <button class="boton-eliminar p-2 text-gray-400 hover:text-red-500" data-id="${contacto.id}" title="Eliminar Contacto">
-                            <i class="fas fa-trash-alt pointer-events-none"></i>
+                            <i class="fas fa-trash-alt"></i>
                         </button>
                     </div>
-                </li>
-            `;
-            contenedorLista.innerHTML += itemHTML;
-        });
-    }
+                `;
+                listaContactos.appendChild(li);
+            });
+        };
 
-    document.addEventListener('actualizar-lista', (evento) => {
-        const { contactos } = evento.detail;
-        renderizarLista(contactos);
-    });
+        // Configurar delegación de eventos para los botones
+        if (listaContactos) {
+            listaContactos.addEventListener('click', function(e) {
+                const botonEditar = e.target.closest('.boton-editar');
+                const botonEliminar = e.target.closest('.boton-eliminar');
+
+                if (botonEditar) {
+                    const id = botonEditar.dataset.id;
+                    if (window.editarContacto) {
+                        window.editarContacto(id);
+                    }
+                } else if (botonEliminar) {
+                    const id = botonEliminar.dataset.id;
+                    if (window.confirmarEliminacion) {
+                        window.confirmarEliminacion(id);
+                    }
+                }
+            });
+        }
+    };
 </script>
