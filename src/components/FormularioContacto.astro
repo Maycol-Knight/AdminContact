@@ -1,0 +1,74 @@
+---
+// Componente para la vista de formulario.
+---
+<div class="p-4 h-full flex flex-col">
+    <div class="flex justify-between items-center mb-6 flex-shrink-0 pt-8">
+        <h1 id="titulo-formulario" class="text-2xl font-bold">Crear Contacto</h1>
+        <button id="boton-cancelar" class="text-blue-400 hover:text-blue-300">Cancelar</button>
+    </div>
+
+    <form id="formulario-contacto" class="flex-grow">
+        <input type="hidden" id="id-contacto">
+        <div class="mb-4">
+            <label for="nombre" class="block text-sm font-medium text-gray-400">Nombre</label>
+            <input type="text" id="nombre" name="nombre" class="w-full mt-1 bg-transparent border-b-2 border-gray-600 focus:border-blue-500 focus:outline-none p-2" required>
+        </div>
+        <div class="mb-4">
+            <label for="telefono" class="block text-sm font-medium text-gray-400">Teléfono</label>
+            <input type="tel" id="telefono" name="telefono" class="w-full mt-1 bg-transparent border-b-2 border-gray-600 focus:border-blue-500 focus:outline-none p-2" required>
+        </div>
+        <div class="mb-4">
+            <label for="email" class="block text-sm font-medium text-gray-400">Correo electrónico</label>
+            <input type="email" id="email" name="email" class="w-full mt-1 bg-transparent border-b-2 border-gray-600 focus:border-blue-500 focus:outline-none p-2" required>
+        </div>
+        <button type="submit" class="w-full mt-6 bg-blue-600 text-white font-bold py-3 rounded-lg hover:bg-blue-700 transition-colors">Guardar Contacto</button>
+    </form>
+</div>
+
+<script is:inline>
+    const formulario = document.getElementById('formulario-contacto');
+    const tituloFormulario = document.getElementById('titulo-formulario');
+    const idContactoInput = document.getElementById('id-contacto');
+    const nombreInput = document.getElementById('nombre');
+    const telefonoInput = document.getElementById('telefono');
+    const emailInput = document.getElementById('email');
+    const botonCancelarForm = document.getElementById('boton-cancelar');
+
+    formulario.addEventListener('submit', function(evento) {
+        evento.preventDefault(); 
+        if (nombreInput.value.trim() === '' || telefonoInput.value.trim() === '' || emailInput.value.trim() === '') {
+            document.dispatchEvent(new CustomEvent('mostrar-notificacion', {
+                detail: { mensaje: 'Todos los campos son obligatorios.', tipo: 'error' }
+            }));
+            return;
+        }
+        const datosContacto = {
+            id: idContactoInput.value || `id-${Date.now()}`,
+            nombre: nombreInput.value,
+            telefono: telefonoInput.value,
+            email: emailInput.value,
+        };
+        document.dispatchEvent(new CustomEvent('guardar-contacto', { detail: datosContacto }));
+        formulario.reset();
+        idContactoInput.value = '';
+    });
+
+    document.addEventListener('cargar-datos-formulario', (evento) => {
+        const contactoAEditar = evento.detail;
+        tituloFormulario.textContent = 'Editar Contacto';
+        idContactoInput.value = contactoAEditar.id;
+        nombreInput.value = contactoAEditar.nombre;
+        telefonoInput.value = contactoAEditar.telefono;
+        emailInput.value = contactoAEditar.email;
+    });
+
+    document.addEventListener('limpiar-formulario', () => {
+        formulario.reset();
+        idContactoInput.value = '';
+        tituloFormulario.textContent = 'Crear Contacto';
+    });
+
+    botonCancelarForm.addEventListener('click', () => {
+        document.dispatchEvent(new CustomEvent('operacion-cancelada'));
+    });
+</script>
