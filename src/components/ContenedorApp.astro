@@ -1,0 +1,12 @@
+---
+// Componente de marco de teléfono.
+---
+<div class="relative border-8 border-neutral-900 bg-neutral-900 rounded-[2.5rem] w-full max-w-sm shadow-2xl">
+    <!-- Simulación de botones laterales -->
+    <div class="absolute -start-[11px] top-28 h-16 w-1 bg-neutral-800 rounded-s-lg"></div>
+    <div class="absolute -start-[11px] top-48 h-16 w-1 bg-neutral-800 rounded-s-lg"></div>
+    <div class="absolute -end-[11px] top-36 h-24 w-1 bg-neutral-800 rounded-e-lg"></div>
+
+    <!-- El slot donde se renderizará toda la pantalla del móvil -->
+    <slot />
+</div>

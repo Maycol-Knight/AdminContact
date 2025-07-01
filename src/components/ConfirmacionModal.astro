@@ -1,0 +1,58 @@
+---
+// Componente para el modal de confirmación de eliminación.
+---
+<div
+  id="modal-confirmacion"
+  class="absolute inset-0 flex justify-center items-end hidden z-50 pb-8"
+>
+  <div class="bg-gray-800 rounded-2xl p-4 w-11/12 max-w-sm shadow-xl text-center">
+    <p class="mb-4 text-gray-300">
+      ¿Estás seguro de que quieres eliminar este contacto?
+    </p>
+    <div class="flex justify-around">
+      <button
+        id="btn-cancelar-eliminacion"
+        class="py-2 px-8 text-white hover:bg-gray-700 rounded-full transition-colors"
+      >
+        Cancelar
+      </button>
+      <button
+        id="btn-confirmar-eliminacion"
+        class="py-2 px-8 text-red-500 hover:bg-red-900/50 rounded-full transition-colors font-semibold"
+      >
+        Eliminar
+      </button>
+    </div>
+  </div>
+</div>
+
+<script is:inline>
+  const modal = document.getElementById('modal-confirmacion');
+  const botonConfirmar = document.getElementById('btn-confirmar-eliminacion');
+  const botonCancelarModal = document.getElementById('btn-cancelar-eliminacion');
+
+  function mostrarModal() {
+    modal.classList.remove('hidden');
+  }
+  function ocultarModal() {
+    modal.classList.add('hidden');
+  }
+
+  document.addEventListener('mostrar-confirmacion-eliminar', mostrarModal);
+
+  // Clic en cualquier parte fuera del cuadro no cierra nada,
+  // así la lista sigue interactiva tras cancelar o confirmar.
+  modal.addEventListener('click', (evento) => {
+    if (evento.target === evento.currentTarget) {
+      ocultarModal();
+    }
+  });
+
+  botonConfirmar.addEventListener('click', () => {
+    document.dispatchEvent(
+      new CustomEvent('confirmar-eliminacion-final')
+    );
+    ocultarModal();
+  });
+  botonCancelarModal.addEventListener('click', ocultarModal);
+</script>
