@@ -48,16 +48,16 @@
             const inicial = contacto.nombre.charAt(0).toUpperCase();
             const itemHTML = `
                 <li class="flex items-center justify-between bg-gray-900 p-3 rounded-lg hover:bg-gray-800 transition-colors duration-200">
-                    <div class="flex items-center space-x-4 pointer-events-none">
-                        <div class="w-10 h-10 rounded-full bg-purple-600 flex items-center justify-center font-bold text-xl">
+                    <div class="flex items-center space-x-4 pointer-events-none flex-1 min-w-0">
+                        <div class="w-10 h-10 rounded-full bg-purple-600 flex items-center justify-center font-bold text-xl flex-shrink-0">
                             ${inicial}
                         </div>
-                        <div>
-                            <p class="font-semibold">${contacto.nombre}</p>
-                            <p class="text-sm text-gray-400">${contacto.email}</p>
+                        <div class="flex-1 min-w-0">
+                            <p class="font-semibold truncate">${contacto.nombre}</p>
+                            <p class="text-sm text-gray-400 truncate">${contacto.email}</p>
                         </div>
                     </div>
-                    <div class="flex space-x-2 items-center">
+                    <div class="flex space-x-2 items-center flex-shrink-0">
                         <button class="boton-editar p-2 text-gray-400 hover:text-blue-400" data-id="${contacto.id}" title="Editar Contacto">
                             <i class="fas fa-pencil-alt pointer-events-none"></i>
                         </button>
