@@ -13,37 +13,51 @@
 
 <script is:inline>
     // =====================================================
-    // LÓGICA DEL COMPONENTE BARRA DE BÚSQUEDA
+    // 🔍 COMPONENTE BARRA DE BÚSQUEDA - SISTEMA MODERNO
     // =====================================================
     
     window.inicializarBarraBusqueda = function() {
         const barraBusqueda = document.getElementById('barra-busqueda');
         
-        if (barraBusqueda) {
-            // Búsqueda en tiempo real
+        if (barraBusqueda && window.appState) {
+            // 🔄 Configurar búsqueda en tiempo real con debounce
+            let timeoutId;
             barraBusqueda.addEventListener('input', function(e) {
                 const termino = e.target.value;
-                if (window.filtrarContactos) {
-                    window.filtrarContactos(termino);
-                }
+                
+                // Debounce para optimizar rendimiento
+                clearTimeout(timeoutId);
+                timeoutId = setTimeout(() => {
+                    window.appState.filtrarContactos(termino);
+                }, 150);
             });
             
-            // Limpiar con Escape
+            // 🧹 Limpiar con Escape
             barraBusqueda.addEventListener('keydown', function(e) {
                 if (e.key === 'Escape') {
                     e.target.value = '';
-                    if (window.filtrarContactos) {
-                        window.filtrarContactos('');
-                    }
+                    window.appState.limpiarBusqueda();
                 }
             });
             
-            // Función específica del componente para limpiar
+            // 🔔 Escuchar cambios desde el estado
+            if (window.appState.subscribe) {
+                window.appState.subscribe('busqueda:limpiada', () => {
+                    if (barraBusqueda.value !== '') {
+                        barraBusqueda.value = '';
+                    }
+                });
+                
+                // Sincronizar con el estado actual si existe término de búsqueda
+                if (window.appState.terminoBusqueda) {
+                    barraBusqueda.value = window.appState.terminoBusqueda;
+                }
+            }
+            
+            // 🌟 Función pública para limpiar (mantener compatibilidad)
             window.limpiarBusqueda = function() {
                 barraBusqueda.value = '';
-                if (window.filtrarContactos) {
-                    window.filtrarContactos('');
-                }
+                window.appState.limpiarBusqueda();
             };
         }
     };

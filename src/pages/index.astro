@@ -132,176 +132,217 @@ import ConfirmacionModal from '../components/ConfirmacionModal.astro';
 
 <script is:inline>
     // =====================================================
-    // COORDINACIÓN GLOBAL DE LA APLICACIÓN MODULARIZADA
-    // =====================================================
-
-    // =====================================================
-    // PERSISTENCIA DE DATOS CON LOCALSTORAGE
+    // 🎯 SISTEMA DE ESTADO MODERNO - NUEVA ARQUITECTURA
     // =====================================================
     
-    // Función para guardar contactos en localStorage
-    window.guardarContactosEnStorage = function() {
-        try {
-            localStorage.setItem('adminContactos', JSON.stringify(window.contactos));
-        } catch (error) {
-            console.error('Error al guardar contactos en localStorage:', error);
-        }
-    };
+    // 🌍 Instancia global única del estado (reemplaza todas las variables globales)
+    let appState;
 
-    // Función para cargar contactos desde localStorage
-    window.cargarContactosDesdeStorage = function() {
-        try {
-            const contactosGuardados = localStorage.getItem('adminContactos');
-            if (contactosGuardados) {
-                return JSON.parse(contactosGuardados);
+    // 🎨 Controlador de UI - maneja la interfaz basándose en el estado
+    class UIController {
+        constructor() {
+            this.elements = {
+                vistaLista: document.getElementById('vista-lista'),
+                vistaFormulario: document.getElementById('vista-formulario'),
+                botonAgregar: document.getElementById('boton-agregar'),
+                headerPrincipal: document.querySelector('header'),
+                contadorContactos: document.getElementById('contador-contactos')
+            };
+            
+            this.setupObservers();
+        }
+
+        setupObservers() {
+            // 🔔 Suscribirse a cambios de estado
+            if (appState) {
+                appState.subscribe('vista:cambiada', (data) => this.cambiarVista(data.actual));
+                appState.subscribe('contactos:updated', (contactos) => this.actualizarContador(contactos));
+                appState.subscribe('contactos:filtered', (contactos) => this.actualizarContador(contactos));
             }
-        } catch (error) {
-            console.error('Error al cargar contactos desde localStorage:', error);
         }
-        return null;
-    };
 
-    // Contactos por defecto (solo para la primera vez)
-    const contactosPorDefecto = [
-        { id: '1', nombre: 'Ana Torres', telefono: '987654321', email: 'ana.t@example.com' },
-        { id: '2', nombre: 'Luis Morales', telefono: '912345678', email: 'luis.m@example.com' },
-        { id: '3', nombre: 'Carla Diaz', telefono: '998877665', email: 'carla.d@example.com' }
-    ];
+        cambiarVista(vista) {
+            if (vista === 'lista') {
+                this.elements.vistaLista?.classList.remove('hidden');
+                this.elements.vistaFormulario?.classList.add('hidden');
+                this.elements.botonAgregar?.classList.remove('hidden');
+                this.elements.headerPrincipal?.classList.remove('hidden');
+            } else if (vista === 'formulario') {
+                this.elements.vistaLista?.classList.add('hidden');
+                this.elements.vistaFormulario?.classList.remove('hidden');
+                this.elements.botonAgregar?.classList.add('hidden');
+                this.elements.headerPrincipal?.classList.add('hidden');
+            }
+        }
 
-    // Inicializar contactos (cargar desde storage o usar por defecto)
-    const contactosCargados = window.cargarContactosDesdeStorage();
-    window.contactos = contactosCargados || contactosPorDefecto;
-    
-    // Si es la primera vez, guardar los contactos por defecto
-    if (!contactosCargados) {
-        window.guardarContactosEnStorage();
+        actualizarContador(contactos) {
+            if (this.elements.contadorContactos) {
+                const cantidad = contactos.length;
+                this.elements.contadorContactos.textContent = `${cantidad} contacto${cantidad !== 1 ? 's' : ''}`;
+            }
+        }
     }
-    
-    window.contactosFiltrados = [...window.contactos];
-    
-    window.appState = {
-        vistaActual: 'lista',
-        modoEdicion: false,
-        contactoEditando: null,
-        contactoAEliminar: null,
-        terminoBusqueda: ''
-    };
 
-    // =====================================================
-    // FUNCIONES GLOBALES DE COORDINACIÓN
-    // =====================================================
-
-    // Función para cambiar entre vistas
+    // 🌟 Funciones de compatibilidad (para mantener la interfaz existente de componentes)
     window.cambiarVista = function(vista) {
-        const vistaLista = document.getElementById('vista-lista');
-        const vistaFormulario = document.getElementById('vista-formulario');
-        const botonAgregar = document.getElementById('boton-agregar');
-        const headerPrincipal = document.querySelector('header');
-        
-        if (vista === 'lista') {
-            vistaLista.classList.remove('hidden');
-            vistaFormulario.classList.add('hidden');
-            botonAgregar.classList.remove('hidden');
-            headerPrincipal.classList.remove('hidden');
-            window.appState.vistaActual = 'lista';
-        } else if (vista === 'formulario') {
-            vistaLista.classList.add('hidden');
-            vistaFormulario.classList.remove('hidden');
-            botonAgregar.classList.add('hidden');
-            headerPrincipal.classList.add('hidden');
-            window.appState.vistaActual = 'formulario';
+        if (appState) {
+            appState.cambiarVista(vista);
         }
     };
 
-    // Función para filtrar contactos
     window.filtrarContactos = function(termino) {
-        const terminoLower = termino.toLowerCase();
-        window.appState.terminoBusqueda = terminoLower;
-        
-        window.contactosFiltrados = window.contactos.filter(contacto => 
-            contacto.nombre.toLowerCase().includes(terminoLower) ||
-            contacto.telefono.toLowerCase().includes(terminoLower) ||
-            contacto.email.toLowerCase().includes(terminoLower)
-        );
-        
-        // Renderizar la lista actualizada
-        if (window.renderizarContactos) {
-            window.renderizarContactos();
+        if (appState) {
+            appState.filtrarContactos(termino);
         }
     };
 
     // =====================================================
-    // INICIALIZACIÓN DE LA APLICACIÓN
+    // 🚀 INICIALIZACIÓN DE LA APLICACIÓN MODERNA
     // =====================================================
 
-    document.addEventListener('DOMContentLoaded', function() {
-        // Inicializar todos los componentes
+    function initializeApp() {
+        // 🌟 Crear instancia única del estado
+        appState = new window.AppState();
+        
+        // 🎨 Crear controlador de UI
+        const uiController = new UIController();
+        
+        // 🔄 Hacer appState disponible globalmente para componentes existentes
+        window.appState = appState;
+        
+        // 📡 Configurar observadores principales
+        setupMainObservers();
+        
+        // 🎮 Configurar event listeners de la aplicación
+        setupEventListeners();
+        
+        // ⏱️ Inicializar componentes después de que el estado esté listo
         setTimeout(() => {
-            if (window.inicializarBarraBusqueda) window.inicializarBarraBusqueda();
-            if (window.inicializarListaContactos) window.inicializarListaContactos();
-            if (window.inicializarFormularioContacto) window.inicializarFormularioContacto();
-            if (window.inicializarConfirmacionModal) window.inicializarConfirmacionModal();
-            if (window.inicializarNotificacionToast) window.inicializarNotificacionToast();
-            
-            // Configurar botón agregar
-            const botonAgregar = document.getElementById('boton-agregar');
-            if (botonAgregar) {
-                botonAgregar.addEventListener('click', function() {
-                    if (window.agregarNuevoContacto) {
-                        window.agregarNuevoContacto();
-                    }
-                });
-            }
-            
-            // Configurar botones de la barra inferior
-            const botonesNav = document.querySelectorAll('.nav-item');
-            botonesNav.forEach((boton, index) => {
-                boton.addEventListener('click', function() {
-                    if (index === 0) { // Favoritos
-                        if (window.mostrarNotificacion) {
-                            window.mostrarNotificacion('⭐ Función de favoritos próximamente', 'info');
-                        }
-                    } else if (index === 1) { // Contactos (ya activo)
-                        // Ya estamos en contactos, no hacer nada
-                    } else if (index === 2) { // Teléfono
-                        if (window.mostrarNotificacion) {
-                            window.mostrarNotificacion('📞 Función de teléfono próximamente', 'info');
-                        }
-                    }
-                });
-            });
+            initializeComponents();
+        }, 100);
+    }
 
-            // Configurar botones de navegación Android
-            const botonesAndroid = document.querySelectorAll('.android-nav-btn');
-            botonesAndroid.forEach((boton, index) => {
-                boton.addEventListener('click', function() {
-                    if (index === 0) { // Atrás
-                        if (window.appState.vistaActual === 'formulario') {
-                            window.cambiarVista('lista');
-                            if (window.mostrarNotificacion) {
-                                window.mostrarNotificacion('◀️ Volviendo a la lista', 'info');
-                            }
-                        } else {
-                            if (window.mostrarNotificacion) {
-                                window.mostrarNotificacion('◀️ Botón atrás', 'info');
-                            }
-                        }
-                    } else if (index === 1) { // Inicio
-                        if (window.mostrarNotificacion) {
-                            window.mostrarNotificacion('🏠 Botón inicio', 'info');
-                        }
-                    } else if (index === 2) { // Recientes
-                        if (window.mostrarNotificacion) {
-                            window.mostrarNotificacion('📱 Apps recientes', 'info');
-                        }
-                    }
-                });
-            });
-            
-            // Renderizar contactos inicial
+    function setupMainObservers() {
+        // 🔔 Observer para renderizar contactos cuando cambien
+        appState.subscribe('contactos:filtered', (contactosFiltrados) => {
             if (window.renderizarContactos) {
                 window.renderizarContactos();
             }
-        }, 100);
+        });
+
+        // 🔔 Observer para notificaciones
+        appState.subscribe('contacto:agregado', (contacto) => {
+            if (window.mostrarNotificacion) {
+                window.mostrarNotificacion('✅ Contacto agregado correctamente', 'success');
+            }
+        });
+
+        appState.subscribe('contacto:actualizado', (contacto) => {
+            if (window.mostrarNotificacion) {
+                window.mostrarNotificacion('✏️ Contacto actualizado correctamente', 'success');
+            }
+        });
+
+        appState.subscribe('contacto:eliminado', (contacto) => {
+            if (window.mostrarNotificacion) {
+                window.mostrarNotificacion('🗑️ Contacto eliminado correctamente', 'success');
+            }
+        });
+
+        // 🔔 Observer para búsqueda
+        appState.subscribe('busqueda:limpiada', () => {
+            const barraBusqueda = document.getElementById('barra-busqueda');
+            if (barraBusqueda) {
+                barraBusqueda.value = '';
+            }
+        });
+    }
+
+    function setupEventListeners() {
+        // 🔲 Configurar botón agregar
+        const botonAgregar = document.getElementById('boton-agregar');
+        if (botonAgregar) {
+            botonAgregar.addEventListener('click', function() {
+                appState.desactivarModoEdicion();
+                appState.cambiarVista('formulario');
+            });
+        }
+        
+        // 🔗 Configurar botones de la barra inferior
+        const botonesNav = document.querySelectorAll('.nav-item');
+        botonesNav.forEach((boton, index) => {
+            boton.addEventListener('click', function() {
+                if (index === 0) { // Favoritos
+                    if (window.mostrarNotificacion) {
+                        window.mostrarNotificacion('⭐ Función de favoritos próximamente', 'info');
+                    }
+                } else if (index === 1) { // Contactos (ya activo)
+                    // Ya estamos en contactos, volver a lista si estamos en formulario
+                    if (appState.vistaActual === 'formulario') {
+                        appState.cambiarVista('lista');
+                    }
+                } else if (index === 2) { // Teléfono
+                    if (window.mostrarNotificacion) {
+                        window.mostrarNotificacion('📞 Función de teléfono próximamente', 'info');
+                    }
+                }
+            });
+        });
+
+        // 🤖 Configurar botones de navegación Android
+        const botonesAndroid = document.querySelectorAll('.android-nav-btn');
+        botonesAndroid.forEach((boton, index) => {
+            boton.addEventListener('click', function() {
+                if (index === 0) { // Atrás
+                    if (appState.vistaActual === 'formulario') {
+                        appState.cambiarVista('lista');
+                        if (window.mostrarNotificacion) {
+                            window.mostrarNotificacion('◀️ Volviendo a la lista', 'info');
+                        }
+                    } else {
+                        if (window.mostrarNotificacion) {
+                            window.mostrarNotificacion('◀️ Botón atrás', 'info');
+                        }
+                    }
+                } else if (index === 1) { // Inicio
+                    if (window.mostrarNotificacion) {
+                        window.mostrarNotificacion('🏠 Botón inicio', 'info');
+                    }
+                } else if (index === 2) { // Recientes
+                    if (window.mostrarNotificacion) {
+                        window.mostrarNotificacion('📱 Apps recientes', 'info');
+                    }
+                }
+            });
+        });
+    }
+
+    function initializeComponents() {
+        // 🧩 Inicializar todos los componentes
+        if (window.inicializarBarraBusqueda) window.inicializarBarraBusqueda();
+        if (window.inicializarListaContactos) window.inicializarListaContactos();
+        if (window.inicializarFormularioContacto) window.inicializarFormularioContacto();
+        if (window.inicializarConfirmacionModal) window.inicializarConfirmacionModal();
+        if (window.inicializarNotificacionToast) window.inicializarNotificacionToast();
+        
+        // ✨ Trigger inicial de renderizado
+        if (window.renderizarContactos) {
+            window.renderizarContactos();
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+        // ⏱️ Esperar a que AppState esté disponible
+        function waitForAppState(retries = 0) {
+            if (window.AppState) {
+                initializeApp();
+            } else if (retries < 10) {
+                setTimeout(() => waitForAppState(retries + 1), 100);
+            } else {
+                console.error('❌ No se pudo cargar AppState');
+            }
+        }
+        
+        waitForAppState();
     });
 </script>

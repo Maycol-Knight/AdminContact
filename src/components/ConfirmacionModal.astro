@@ -13,7 +13,7 @@
 
 <script is:inline>
     // =====================================================
-    // LÓGICA DEL COMPONENTE MODAL DE CONFIRMACIÓN
+    // 🗑️ COMPONENTE MODAL DE CONFIRMACIÓN - SISTEMA MODERNO
     // =====================================================
     
     window.inicializarConfirmacionModal = function() {
@@ -21,76 +21,91 @@
         const btnCancelarEliminacion = document.getElementById('btn-cancelar-eliminacion');
         const btnConfirmarEliminacion = document.getElementById('btn-confirmar-eliminacion');
         
-        // Función para mostrar el modal de confirmación
-        window.confirmarEliminacion = function(id) {
-            window.appState.contactoAEliminar = id;
-            if (modalConfirmacion) {
-                modalConfirmacion.classList.remove('hidden');
-                modalConfirmacion.classList.add('flex');
-            }
-        };
+        if (!modalConfirmacion || !window.appState) return;
 
-        // Función para ocultar el modal
-        window.cancelarEliminacion = function() {
-            if (modalConfirmacion) {
-                modalConfirmacion.classList.add('hidden');
-                modalConfirmacion.classList.remove('flex');
-            }
-            window.appState.contactoAEliminar = null;
-        };
+        // 🔔 Suscribirse a cambios de estado
+        if (window.appState.subscribe) {
+            // Mostrar modal cuando se prepare eliminación
+            window.appState.subscribe('eliminacion:preparada', (contactoId) => {
+                mostrarModal();
+            });
 
-        // Función para eliminar el contacto confirmado
-        window.eliminarContacto = function() {
-            const id = window.appState.contactoAEliminar;
-            if (!window.contactos || !id) return;
-            
-            // Eliminar contacto del array
-            window.contactos = window.contactos.filter(c => c.id !== id);
-            
-            // Guardar en localStorage
-            if (window.guardarContactosEnStorage) {
-                window.guardarContactosEnStorage();
-            }
-            
-            // Actualizar lista filtrada
-            window.contactosFiltrados = [...window.contactos];
-            
-            // Aplicar filtro actual si existe
-            const barraBusqueda = document.getElementById('barra-busqueda');
-            if (barraBusqueda && barraBusqueda.value) {
-                window.filtrarContactos(barraBusqueda.value);
-            }
-            
-            // Mostrar notificación
-            if (window.mostrarNotificacion) {
-                window.mostrarNotificacion('Contacto eliminado', 'success');
-            }
-            
-            // Renderizar lista actualizada
-            if (window.renderizarContactos) {
-                window.renderizarContactos();
-            }
-            
-            // Ocultar modal
-            window.cancelarEliminacion();
-        };
+            // Ocultar modal cuando se cancele eliminación
+            window.appState.subscribe('eliminacion:cancelada', () => {
+                ocultarModal();
+            });
 
-        // Event listeners
+            // Ocultar modal después de eliminar
+            window.appState.subscribe('contacto:eliminado', () => {
+                ocultarModal();
+            });
+        }
+
+        // 👁️ Función para mostrar el modal
+        function mostrarModal() {
+            modalConfirmacion.classList.remove('hidden');
+            modalConfirmacion.classList.add('flex');
+            
+            // Añadir efecto de entrada
+            setTimeout(() => {
+                modalConfirmacion.querySelector('.bg-gray-800').classList.add('animate-pulse');
+            }, 50);
+        }
+
+        // 🙈 Función para ocultar el modal
+        function ocultarModal() {
+            modalConfirmacion.classList.add('hidden');
+            modalConfirmacion.classList.remove('flex');
+            modalConfirmacion.querySelector('.bg-gray-800').classList.remove('animate-pulse');
+        }
+
+        // ❌ Event listener para cancelar eliminación
         if (btnCancelarEliminacion) {
-            btnCancelarEliminacion.addEventListener('click', window.cancelarEliminacion);
+            btnCancelarEliminacion.addEventListener('click', function() {
+                window.appState.cancelarEliminacion();
+            });
         }
 
+        // ✅ Event listener para confirmar eliminación
         if (btnConfirmarEliminacion) {
-            btnConfirmarEliminacion.addEventListener('click', window.eliminarContacto);
-        }
-
-        // Cerrar modal al hacer clic fuera del contenido
-        if (modalConfirmacion) {
-            modalConfirmacion.addEventListener('click', function(e) {
-                if (e.target === modalConfirmacion) {
-                    window.cancelarEliminacion();
+            btnConfirmarEliminacion.addEventListener('click', function() {
+                const contactoId = window.appState.contactoAEliminar;
+                if (contactoId) {
+                    window.appState.eliminarContacto(contactoId);
+                    window.appState.cancelarEliminacion();
                 }
             });
         }
+
+        // 🖱️ Cerrar modal al hacer clic fuera del contenido
+        modalConfirmacion.addEventListener('click', function(e) {
+            if (e.target === modalConfirmacion) {
+                window.appState.cancelarEliminacion();
+            }
+        });
+
+        // ⌨️ Cerrar modal con tecla Escape
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape' && !modalConfirmacion.classList.contains('hidden')) {
+                window.appState.cancelarEliminacion();
+            }
+        });
+
+        // 🌟 Funciones de compatibilidad (para mantener interfaz existente)
+        window.confirmarEliminacion = function(id) {
+            window.appState.prepararEliminacion(id);
+        };
+
+        window.cancelarEliminacion = function() {
+            window.appState.cancelarEliminacion();
+        };
+
+        window.eliminarContacto = function() {
+            const contactoId = window.appState.contactoAEliminar;
+            if (contactoId) {
+                window.appState.eliminarContacto(contactoId);
+                window.appState.cancelarEliminacion();
+            }
+        };
     };
 </script>

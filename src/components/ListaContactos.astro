@@ -7,52 +7,64 @@
 
 <script is:inline>
     // =====================================================
-    // LÓGICA DEL COMPONENTE LISTA DE CONTACTOS
+    // 📋 COMPONENTE LISTA DE CONTACTOS - SISTEMA MODERNO
     // =====================================================
     
     window.inicializarListaContactos = function() {
         const listaContactos = document.getElementById('lista-contactos');
         
-        // Función para renderizar la lista (accesible globalmente)
+        if (!listaContactos) return;
+        
+        // 🎨 Función para renderizar la lista (conectada al estado)
         window.renderizarContactos = function() {
-            if (!listaContactos || !window.contactosFiltrados) return;
+            if (!window.appState) return;
             
+            const contactosFiltrados = window.appState.contactosFiltrados;
             listaContactos.innerHTML = '';
             
-            // Actualizar contador
-            const contador = document.getElementById('contador-contactos');
-            if (contador) {
-                const cantidad = window.contactosFiltrados.length;
-                contador.textContent = `${cantidad} contacto${cantidad !== 1 ? 's' : ''}`;
-            }
+            // 📊 Actualizar contador automáticamente via estado
+            // (El UIController ya maneja esto)
             
-            // Mostrar mensaje si no hay contactos
-            if (window.contactosFiltrados.length === 0) {
-                listaContactos.innerHTML = '<li class="text-center text-gray-500 py-10">No se encontraron contactos.</li>';
+            // 📝 Mostrar mensaje si no hay contactos
+            if (contactosFiltrados.length === 0) {
+                const mensajeBusqueda = window.appState.terminoBusqueda 
+                    ? `No se encontraron contactos que coincidan con "${window.appState.terminoBusqueda}"`
+                    : 'No hay contactos guardados';
+                    
+                listaContactos.innerHTML = `
+                    <li class="text-center text-gray-500 py-10">
+                        <i class="fas fa-search text-3xl mb-2 block opacity-50"></i>
+                        ${mensajeBusqueda}
+                    </li>
+                `;
                 return;
             }
 
-            // Renderizar cada contacto
-            window.contactosFiltrados.forEach(contacto => {
+            // 🎯 Renderizar cada contacto
+            contactosFiltrados.forEach(contacto => {
                 const inicial = contacto.nombre.charAt(0).toUpperCase();
                 const li = document.createElement('li');
                 li.className = 'flex items-center justify-between bg-gray-900 p-3 rounded-lg hover:bg-gray-800 transition-colors duration-200';
                 li.innerHTML = `
                     <div class="flex items-center space-x-4 flex-1 min-w-0">
-                        <div class="w-10 h-10 rounded-full bg-purple-600 flex items-center justify-center font-bold text-xl flex-shrink-0">
+                        <div class="w-10 h-10 rounded-full bg-gradient-to-br from-purple-500 to-purple-700 flex items-center justify-center font-bold text-xl flex-shrink-0 shadow-lg">
                             ${inicial}
                         </div>
                         <div class="min-w-0 flex-1">
-                            <p class="font-semibold truncate">${contacto.nombre}</p>
-                            <p class="text-sm text-gray-400 truncate">${contacto.telefono}</p>
-                            <p class="text-sm text-gray-400 truncate">${contacto.email}</p>
+                            <p class="font-semibold truncate text-white">${contacto.nombre}</p>
+                            <p class="text-sm text-gray-300 truncate">📞 ${contacto.telefono}</p>
+                            <p class="text-sm text-gray-400 truncate">✉️ ${contacto.email}</p>
                         </div>
                     </div>
                     <div class="flex space-x-2 items-center">
-                        <button class="boton-editar p-2 text-gray-400 hover:text-blue-400" data-id="${contacto.id}" title="Editar Contacto">
+                        <button class="boton-editar p-2 text-gray-400 hover:text-blue-400 hover:bg-blue-400/10 rounded-full transition-all duration-200" 
+                                data-id="${contacto.id}" 
+                                title="Editar Contacto">
                             <i class="fas fa-pencil-alt"></i>
                         </button>
-                        <button class="boton-eliminar p-2 text-gray-400 hover:text-red-500" data-id="${contacto.id}" title="Eliminar Contacto">
+                        <button class="boton-eliminar p-2 text-gray-400 hover:text-red-500 hover:bg-red-500/10 rounded-full transition-all duration-200" 
+                                data-id="${contacto.id}" 
+                                title="Eliminar Contacto">
                             <i class="fas fa-trash-alt"></i>
                         </button>
                     </div>
@@ -61,23 +73,30 @@
             });
         };
 
-        // Configurar delegación de eventos para los botones
-        if (listaContactos) {
-            listaContactos.addEventListener('click', function(e) {
-                const botonEditar = e.target.closest('.boton-editar');
-                const botonEliminar = e.target.closest('.boton-eliminar');
+        // 🎮 Configurar delegación de eventos para los botones
+        listaContactos.addEventListener('click', function(e) {
+            if (!window.appState) return;
+            
+            const botonEditar = e.target.closest('.boton-editar');
+            const botonEliminar = e.target.closest('.boton-eliminar');
 
-                if (botonEditar) {
-                    const id = botonEditar.dataset.id;
-                    if (window.editarContacto) {
-                        window.editarContacto(id);
-                    }
-                } else if (botonEliminar) {
-                    const id = botonEliminar.dataset.id;
-                    if (window.confirmarEliminacion) {
-                        window.confirmarEliminacion(id);
-                    }
+            if (botonEditar) {
+                const id = botonEditar.dataset.id;
+                const contacto = window.appState.obtenerContacto(id);
+                if (contacto) {
+                    window.appState.activarModoEdicion(contacto);
+                    window.appState.cambiarVista('formulario');
                 }
+            } else if (botonEliminar) {
+                const id = botonEliminar.dataset.id;
+                window.appState.prepararEliminacion(id);
+            }
+        });
+
+        // 🔔 Suscribirse a cambios de estado
+        if (window.appState && window.appState.subscribe) {
+            window.appState.subscribe('contactos:filtered', () => {
+                window.renderizarContactos();
             });
         }
     };

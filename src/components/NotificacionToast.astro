@@ -10,7 +10,7 @@
 
 <script is:inline>
     // =====================================================
-    // LÓGICA DEL COMPONENTE NOTIFICACIÓN TOAST
+    // 🔔 COMPONENTE NOTIFICACIÓN TOAST - SISTEMA MODERNO
     // =====================================================
     
     window.inicializarNotificacionToast = function() {
@@ -18,45 +18,125 @@
         const textoToast = document.getElementById('mensaje-notificacion');
         const iconoToast = document.getElementById('icono-notificacion');
         
-        // Variable para controlar el timer
+        if (!toast || !textoToast || !iconoToast) return;
+        
+        // 📋 Queue de notificaciones para manejar múltiples mensajes
+        let notificacionQueue = [];
+        let notificacionActiva = false;
         let notificacionTimer;
         
-        // Función global para mostrar notificaciones
+        // 🎨 Configuración de tipos de notificación
+        const tiposNotificacion = {
+            success: { 
+                clase: 'bg-green-600', 
+                icono: 'fa-check',
+                duracion: 3000 
+            },
+            error: { 
+                clase: 'bg-red-600', 
+                icono: 'fa-exclamation-triangle',
+                duracion: 4000 
+            },
+            info: { 
+                clase: 'bg-blue-600', 
+                icono: 'fa-info-circle',
+                duracion: 3000 
+            },
+            warning: { 
+                clase: 'bg-yellow-600', 
+                icono: 'fa-exclamation-triangle',
+                duracion: 3500 
+            }
+        };
+
+        // 🌟 Función global para mostrar notificaciones
         window.mostrarNotificacion = function(mensaje, tipo = 'success') {
-            if (!toast || !textoToast || !iconoToast) return;
+            // Agregar a la queue
+            notificacionQueue.push({ mensaje, tipo });
             
+            // Si no hay notificación activa, procesar inmediatamente
+            if (!notificacionActiva) {
+                procesarSiguienteNotificacion();
+            }
+        };
+
+        // 🔄 Procesar la siguiente notificación en la queue
+        function procesarSiguienteNotificacion() {
+            if (notificacionQueue.length === 0) {
+                notificacionActiva = false;
+                return;
+            }
+
+            notificacionActiva = true;
+            const { mensaje, tipo } = notificacionQueue.shift();
+            
+            mostrarToast(mensaje, tipo);
+        }
+
+        // 👁️ Mostrar el toast
+        function mostrarToast(mensaje, tipo) {
             // Limpiar timer anterior
             if (notificacionTimer) {
                 clearTimeout(notificacionTimer);
             }
             
+            // Configurar contenido
             textoToast.textContent = mensaje;
             
-            // Configurar colores según el tipo
-            toast.classList.remove('bg-green-600', 'bg-red-600', 'bg-gray-700');
+            // Limpiar clases anteriores
+            toast.classList.remove('bg-green-600', 'bg-red-600', 'bg-blue-600', 'bg-yellow-600');
             iconoToast.classList.remove('fa-check', 'fa-exclamation-triangle', 'fa-info-circle');
             
-            if (tipo === 'success' || tipo === 'exito') {
-                toast.classList.add('bg-green-600');
-                iconoToast.classList.add('fa-check');
-            } else if (tipo === 'error') {
-                toast.classList.add('bg-red-600');
-                iconoToast.classList.add('fa-exclamation-triangle');
-            } else {
-                toast.classList.add('bg-gray-700');
-                iconoToast.classList.add('fa-info-circle');
-            }
+            // Aplicar configuración del tipo
+            const config = tiposNotificacion[tipo] || tiposNotificacion.success;
+            toast.classList.add(config.clase);
+            iconoToast.classList.add(config.icono);
             
-            // Mostrar la notificación
+            // Mostrar la notificación con animación
             toast.classList.remove('hidden', 'opacity-0', 'translate-y-full');
+            toast.classList.add('opacity-100', 'translate-y-0');
             
-            // Auto-ocultar después de 3 segundos
+            // Auto-ocultar después del tiempo especificado
             notificacionTimer = setTimeout(() => {
-                toast.classList.add('opacity-0', 'translate-y-full');
-                setTimeout(() => {
-                    toast.classList.add('hidden');
-                }, 300);
-            }, 3000);
+                ocultarToast();
+            }, config.duracion);
+        }
+
+        // 🙈 Ocultar el toast
+        function ocultarToast() {
+            toast.classList.remove('opacity-100', 'translate-y-0');
+            toast.classList.add('opacity-0', 'translate-y-full');
+            
+            setTimeout(() => {
+                toast.classList.add('hidden');
+                // Procesar siguiente notificación en la queue
+                setTimeout(procesarSiguienteNotificacion, 200);
+            }, 300);
+        }
+
+        // 🖱️ Cerrar toast al hacer clic
+        toast.addEventListener('click', function() {
+            clearTimeout(notificacionTimer);
+            ocultarToast();
+        });
+
+        // 🔔 Suscribirse a eventos del estado (opcional para notificaciones automáticas)
+        if (window.appState && window.appState.subscribe) {
+            // Las notificaciones ya se manejan en el coordinador principal
+            // pero se pueden agregar más observadores aquí si es necesario
+            
+            window.appState.subscribe('storage:error', (error) => {
+                window.mostrarNotificacion('⚠️ Error al guardar los datos', 'warning');
+            });
+        }
+
+        // 🧹 Función para limpiar la queue (útil para testing)
+        window.limpiarNotificaciones = function() {
+            notificacionQueue = [];
+            if (notificacionTimer) {
+                clearTimeout(notificacionTimer);
+            }
+            ocultarToast();
         };
     };
 </script>

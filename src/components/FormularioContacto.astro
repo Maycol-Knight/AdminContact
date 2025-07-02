@@ -29,7 +29,7 @@
 
 <script is:inline>
     // =====================================================
-    // LÓGICA DEL COMPONENTE FORMULARIO DE CONTACTO
+    // 📝 COMPONENTE FORMULARIO DE CONTACTO - SISTEMA MODERNO
     // =====================================================
     
     window.inicializarFormularioContacto = function() {
@@ -41,110 +41,132 @@
         const emailInput = document.getElementById('email');
         const botonCancelar = document.getElementById('boton-cancelar');
         
-        // Función para limpiar el formulario
-        window.limpiarFormulario = function() {
-            if (formulario) {
-                formulario.reset();
-                idContactoInput.value = '';
-                tituloFormulario.textContent = 'Crear Contacto';
-                window.appState.modoEdicion = false;
-                window.appState.contactoEditando = null;
-            }
-        };
+        if (!formulario || !window.appState) return;
 
-        // Función para cargar datos de contacto en el formulario
-        window.cargarContactoEnFormulario = function(contacto) {
+        // 🧹 Función para limpiar el formulario
+        function limpiarFormulario() {
+            formulario.reset();
+            idContactoInput.value = '';
+            tituloFormulario.textContent = 'Crear Contacto';
+        }
+
+        // 📝 Función para cargar datos de contacto en el formulario
+        function cargarContactoEnFormulario(contacto) {
             if (contacto) {
                 tituloFormulario.textContent = 'Editar Contacto';
                 idContactoInput.value = contacto.id;
                 nombreInput.value = contacto.nombre;
                 telefonoInput.value = contacto.telefono;
                 emailInput.value = contacto.email;
-                window.appState.modoEdicion = true;
-                window.appState.contactoEditando = contacto;
             }
-        };
+        }
 
-        // Función para editar contacto (llamada desde la lista)
-        window.editarContacto = function(id) {
-            const contacto = window.contactos.find(c => c.id === id);
-            if (contacto) {
-                window.cargarContactoEnFormulario(contacto);
-                window.cambiarVista('formulario');
+        // ✅ Función para validar datos del formulario
+        function validarFormulario() {
+            const nombre = nombreInput.value.trim();
+            const telefono = telefonoInput.value.trim();
+            const email = emailInput.value.trim();
+
+            const errores = [];
+
+            if (!nombre) errores.push('El nombre es requerido');
+            if (nombre.length < 2) errores.push('El nombre debe tener al menos 2 caracteres');
+            
+            if (!telefono) errores.push('El teléfono es requerido');
+            if (!/^[\d\s\-\+\(\)]+$/.test(telefono)) errores.push('El teléfono tiene un formato inválido');
+            
+            if (!email) errores.push('El email es requerido');
+            if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) errores.push('El email tiene un formato inválido');
+
+            return { valido: errores.length === 0, errores };
+        }
+
+        // 💾 Event listener para el formulario
+        formulario.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const validacion = validarFormulario();
+            
+            if (!validacion.valido) {
+                if (window.mostrarNotificacion) {
+                    window.mostrarNotificacion(`❌ ${validacion.errores[0]}`, 'error');
+                }
+                return;
             }
-        };
 
-        // Función para agregar nuevo contacto
-        window.agregarNuevoContacto = function() {
-            window.limpiarFormulario();
-            window.cambiarVista('formulario');
-        };
+            const datosContacto = {
+                nombre: nombreInput.value.trim(),
+                telefono: telefonoInput.value.trim(),
+                email: emailInput.value.trim()
+            };
 
-        // Event listener para el formulario
-        if (formulario) {
-            formulario.addEventListener('submit', function(e) {
-                e.preventDefault();
-                
-                const nombre = nombreInput.value.trim();
-                const telefono = telefonoInput.value.trim();
-                const email = emailInput.value.trim();
-
-                if (nombre && telefono && email) {
-                    if (window.appState.modoEdicion && window.appState.contactoEditando) {
-                        // Actualizar contacto existente
-                        window.appState.contactoEditando.nombre = nombre;
-                        window.appState.contactoEditando.telefono = telefono;
-                        window.appState.contactoEditando.email = email;
-                        
-                        // Guardar en localStorage
-                        if (window.guardarContactosEnStorage) {
-                            window.guardarContactosEnStorage();
-                        }
-                        
-                        if (window.mostrarNotificacion) {
-                            window.mostrarNotificacion('Contacto actualizado', 'success');
-                        }
-                    } else {
-                        // Agregar nuevo contacto
-                        const nuevoContacto = {
-                            id: Date.now().toString(),
-                            nombre,
-                            telefono,
-                            email
-                        };
-                        window.contactos.push(nuevoContacto);
-                        
-                        // Guardar en localStorage
-                        if (window.guardarContactosEnStorage) {
-                            window.guardarContactosEnStorage();
-                        }
-                        
-                        if (window.mostrarNotificacion) {
-                            window.mostrarNotificacion('Contacto agregado', 'success');
-                        }
-                    }
-                    
-                    // Actualizar lista filtrada y cambiar vista
-                    window.contactosFiltrados = [...window.contactos];
-                    window.cambiarVista('lista');
-                    
-                    // Renderizar lista actualizada
-                    if (window.renderizarContactos) {
-                        window.renderizarContactos();
-                    }
+            try {
+                if (window.appState.modoEdicion && window.appState.contactoEditando) {
+                    // 🔄 Actualizar contacto existente
+                    window.appState.actualizarContacto(window.appState.contactoEditando.id, datosContacto);
                 } else {
-                    if (window.mostrarNotificacion) {
-                        window.mostrarNotificacion('Por favor, complete todos los campos', 'error');
+                    // ➕ Agregar nuevo contacto
+                    window.appState.agregarContacto(datosContacto);
+                }
+                
+                // 🔄 Cambiar a vista lista y limpiar formulario
+                window.appState.desactivarModoEdicion();
+                window.appState.cambiarVista('lista');
+                
+            } catch (error) {
+                console.error('Error al guardar contacto:', error);
+                if (window.mostrarNotificacion) {
+                    window.mostrarNotificacion('❌ Error al guardar el contacto', 'error');
+                }
+            }
+        });
+
+        // ❌ Event listener para el botón cancelar
+        if (botonCancelar) {
+            botonCancelar.addEventListener('click', function() {
+                window.appState.desactivarModoEdicion();
+                window.appState.cambiarVista('lista');
+            });
+        }
+
+        // 🔔 Suscribirse a cambios de estado
+        if (window.appState.subscribe) {
+            // Cuando se activa modo edición, cargar datos
+            window.appState.subscribe('edicion:activada', (contacto) => {
+                cargarContactoEnFormulario(contacto);
+            });
+
+            // Cuando se desactiva modo edición, limpiar formulario
+            window.appState.subscribe('edicion:desactivada', () => {
+                limpiarFormulario();
+            });
+
+            // Cuando cambia a vista formulario, configurar según el modo
+            window.appState.subscribe('vista:cambiada', (data) => {
+                if (data.actual === 'formulario') {
+                    if (!window.appState.modoEdicion) {
+                        limpiarFormulario();
                     }
                 }
             });
         }
 
-        // Event listener para el botón cancelar
-        if (botonCancelar) {
-            botonCancelar.addEventListener('click', function() {
-                window.cambiarVista('lista');
-            });
-        }
+        // 🌟 Funciones de compatibilidad (para mantener interfaz existente)
+        window.limpiarFormulario = limpiarFormulario;
+        window.cargarContactoEnFormulario = cargarContactoEnFormulario;
+        
+        // ⚡ Mantener compatibilidad con llamadas directas
+        window.editarContacto = function(id) {
+            const contacto = window.appState.obtenerContacto(id);
+            if (contacto) {
+                window.appState.activarModoEdicion(contacto);
+                window.appState.cambiarVista('formulario');
+            }
+        };
+
+        window.agregarNuevoContacto = function() {
+            window.appState.desactivarModoEdicion();
+            window.appState.cambiarVista('formulario');
+        };
     };
 </script>
